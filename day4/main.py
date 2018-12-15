@@ -21,7 +21,6 @@ class Event:
     def __str__(self):
         return str(self.time) + ' ' + self.event
 
-
 def parse_event(event):
     vals = re.search(r'\[(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}):(?P<minute>\d{2})\] (?P<event>.*)', event)
     year = int(vals.group('year'))
@@ -38,10 +37,21 @@ def get_guard(event):
         return vals.group('guard_id')
     return None
 
+def is_asleep(event):
+    vals = re.compile(r'falls asleep').match(event.event)
+    if (vals):
+        return True
+    return False
+
+def is_awake(event):
+    vals = re.compile(r'wakes up').match(event.event)
+    if (vals):
+        return True
+    return False
 
 def main():
-    part1()
-    # part2()
+    # part1()
+    part2()
 
 def part1():
     with open('in.txt') as f:
@@ -51,50 +61,84 @@ def part1():
             events.append(e)
 
         events.sort()
+        for event in events:
+            print(event)
+
 
         guards = dict()
         curr_guard = None
+        is_sleep = False
+        sleep_start_time = None
         for event in events:
-            if get_guard(event):
-                curr_guard = get_guard(event)
+            next_guard = get_guard(event)
+            if (next_guard):
+                curr_guard = next_guard
+                if (curr_guard not in guards):
+                    guards[curr_guard] = [0] * 60
                 continue
+            # Parse wake up and sleep events
+            if (is_asleep(event)):
+                is_sleep = True
+                sleep_start_time = event.time
+                continue
+            if (is_awake(event)):
+                is_sleep = False
+                sleep_end_time = event.time
+                for i in range(sleep_start_time.minute, sleep_end_time.minute):
+                    guards[curr_guard][i] += 1
+        guard_max_sleep = None
+        guard_max_sleep_value = 0
+        for guard in guards:
+            if sum(guards[guard]) > guard_max_sleep_value:
+                guard_max_sleep = guard
+                guard_max_sleep_value = sum(guards[guard])
+        max_value = max(guards[guard_max_sleep])
+        max_timeslot = guards[guard_max_sleep].index(max_value)
+        print('Guard: ' + str(guard_max_sleep) + ' slept most at ' + str(max_timeslot))
 
 
 def part2():
-    # 1000x1000 array
-    # These are gross solutions
-    cut_claim = [[0] * 2000 for i in range(2000)]
     with open('in.txt') as f:
-        lines = f.readlines()
-        for line in lines:
-            vals = re.search(r'\#\d+ @ (?P<x>\d+),(?P<y>\d+): (?P<w>\d+)x(?P<h>\d+)', line)
-            if (vals):
-                x = int(vals.group('x'))
-                y = int(vals.group('y'))
-                w = int(vals.group('w'))
-                h = int(vals.group('h'))
-                for i in range(w):
-                    for j in range(h):
-                        cut_claim[x + i + 1][y + j + 1] += 1
-        for line in lines:
-            vals = re.search(r'\#(?P<id>\d+) @ (?P<x>\d+),(?P<y>\d+): (?P<w>\d+)x(?P<h>\d+)', line)
-            if (vals):
-                x = int(vals.group('x'))
-                y = int(vals.group('y'))
-                w = int(vals.group('w'))
-                h = int(vals.group('h'))
-                has_overlap = False
-                for i in range(w):
-                    if not has_overlap:
-                        for j in range(h):
-                            if (cut_claim[x + i + 1][y + j + 1] > 1):
-                                has_overlap = True
-                                break
-                if not has_overlap:
-                    print(vals.group('id'))
-                    return
+        events = []
+        for line in f.readlines():
+            e = parse_event(line)
+            events.append(e)
+
+        events.sort()
+        for event in events:
+            print(event)
 
 
+        guards = dict()
+        curr_guard = None
+        is_sleep = False
+        sleep_start_time = None
+        for event in events:
+            next_guard = get_guard(event)
+            if (next_guard):
+                curr_guard = next_guard
+                if (curr_guard not in guards):
+                    guards[curr_guard] = [0] * 60
+                continue
+            # Parse wake up and sleep events
+            if (is_asleep(event)):
+                is_sleep = True
+                sleep_start_time = event.time
+                continue
+            if (is_awake(event)):
+                is_sleep = False
+                sleep_end_time = event.time
+                for i in range(sleep_start_time.minute, sleep_end_time.minute):
+                    guards[curr_guard][i] += 1
+        guard_max_sleep = None
+        guard_max_sleep_value = 0
+        for guard in guards:
+            if max(guards[guard]) > guard_max_sleep_value:
+                guard_max_sleep = guard
+                guard_max_sleep_value = max(guards[guard])
+        max_value = max(guards[guard_max_sleep])
+        max_timeslot = guards[guard_max_sleep].index(max_value)
+        print('Guard: ' + str(guard_max_sleep) + ' slept most at ' + str(max_timeslot))
 
 if __name__ == '__main__':
     main()

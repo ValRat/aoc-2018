@@ -1,0 +1,8 @@
+
+# Strat: Make a n x m matrix using largest coordinatet
+# values. Then do n*m*k comparisons to all k coordinates
+# and populate each element of matrix with the closest coordinate
+# eliminate all c coordinates which are 'edge' coordinates
+# i.e. having index of 0, n, m. Thus remaining coordinatets of k - c
+# can be iterated on the matrix to see which one has the highest
+# number of assigned elements

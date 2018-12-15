@@ -1,0 +1,11 @@
+Graph as a list:
+If we represent this as a directed dependency graph,
+and take an INVERSE of this graph we find that all
+elements with NO edges and NOT in the EXECUTED set
+will be the next in line to be executed. 
+
+
+Graph as a matrix:
+Don't have to inverse since it's cheaper to look down
+a column to find vertices with no edges associated with
+it and check against the EXECUTED set.
